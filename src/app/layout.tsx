@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { M_PLUS_Rounded_1c } from 'next/font/google';
 
+import { AuthProvider } from '@/contexts/AuthContext';
 import { THEME_INIT_SCRIPT } from '@/lib/theme/applyBaseColor';
 
 import './globals.css';
@@ -27,11 +28,13 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<'/'>) {
   return (
-    <html lang="ja" className={`${rounded.variable} h-full`}>
+    <html lang="ja" className={`${rounded.variable} h-full`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
-      <body className="min-h-full flex flex-col antialiased">{children}</body>
+      <body className="min-h-full flex flex-col antialiased">
+        <AuthProvider>{children}</AuthProvider>
+      </body>
     </html>
   );
 }

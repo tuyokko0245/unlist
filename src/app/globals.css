@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant disabled-idle (&:disabled:not([data-busy]));
+
 @theme {
   --color-base-50: var(--app-base-50, #fff3f9);
   --color-base-100: var(--app-base-100, #ffe8f4);
@@ -26,11 +28,13 @@
   --color-fg-placeholder: #7e7476;
   --color-fg-done: #7a7072;
   --color-fg-inverse: #ffffff;
+  --color-on-base: #2b1a18;
 
   --color-brand: #ed1fa6;
   --color-link: #d62e9d;
   --color-link-hover: #ba2489;
   --color-icon-mark: #b3157f;
+  --color-icon-bg: #fbb6d8;
 
   --color-border: #fbd3e7;
   --color-border-strong: #f5bdd9;
