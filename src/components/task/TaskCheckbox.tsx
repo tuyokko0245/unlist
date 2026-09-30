@@ -1,7 +1,7 @@
 'use client';
 
 import { Check } from 'lucide-react';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 
 import { useConfetti } from '@/hooks/useConfetti';
 
@@ -15,9 +15,11 @@ export interface TaskCheckboxProps {
 export function TaskCheckbox({ checked, taskTitle, celebrate = true, onChange }: TaskCheckboxProps) {
   const confetti = useConfetti();
   const ref = useRef<HTMLButtonElement>(null);
+  const [animate, setAnimate] = useState(false);
 
   const handleClick = () => {
     const next = !checked;
+    setAnimate(true);
     if (next && celebrate && ref.current) {
       const rect = ref.current.getBoundingClientRect();
       confetti.fire({ x: rect.left + rect.width / 2, y: rect.top });
@@ -40,12 +42,14 @@ export function TaskCheckbox({ checked, taskTitle, celebrate = true, onChange }:
           checked ? 'bg-base-600' : ''
         }`}
       >
-        <Check
-          size={14}
-          strokeWidth={3.2}
-          aria-hidden="true"
-          className={`text-on-base transition-opacity duration-150 ${checked ? 'opacity-100' : 'opacity-0'}`}
-        />
+        {checked && (
+          <Check
+            size={14}
+            strokeWidth={3.2}
+            aria-hidden="true"
+            className={`text-on-base ${animate ? 'motion-safe:animate-[check-pop_150ms_ease-out]' : ''}`}
+          />
+        )}
       </span>
     </button>
   );

@@ -4,13 +4,12 @@ import { CheckCheck } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { EmptyState } from '@/components/feedback/EmptyState';
-import { ErrorBanner } from '@/components/feedback/ErrorBanner';
-import { SkeletonTaskCard } from '@/components/feedback/SkeletonTaskCard';
+import { LiveAnnouncer } from '@/components/feedback/LiveAnnouncer';
 import { AppShell } from '@/components/layout/AppShell';
 import { CompletedSection } from '@/components/task/CompletedSection';
 import { SwipeableRow } from '@/components/task/SwipeableRow';
 import { TaskCard } from '@/components/task/TaskCard';
+import { TaskListView } from '@/components/task/TaskListView';
 import { TaskSection } from '@/components/task/TaskSection';
 import { useLists } from '@/hooks/useLists';
 import { useTaskMutations } from '@/hooks/useTaskMutations';
@@ -26,10 +25,11 @@ type SectionKey = 'overdue' | 'today' | 'starred';
 export function TodayView() {
   const router = useRouter();
   const { lists } = useLists();
-  const { groups, isLoading, error, retry } = useTodayTasks();
+  const { groups, isLoading, error, retry, hasMoreCompleted, loadMoreCompleted } = useTodayTasks();
   const { toggleComplete, toggleStar, deleteTask } = useTaskMutations();
 
   const [justCompleted, setJustCompleted] = useState<Map<string, SectionKey>>(new Map());
+  const [announcement, setAnnouncement] = useState({ text: '', seq: 0 });
   const timers = useRef(new Map<string, ReturnType<typeof setTimeout>>());
 
   useEffect(() => {
@@ -75,6 +75,10 @@ export function TodayView() {
       const task = byId.get(taskId);
       if (!task) return;
       if (next === 'completed') holdInPlace(taskId, sectionOf(taskId));
+      setAnnouncement((current) => ({
+        text: next === 'completed' ? 'タスクを完了しました' : '完了を取り消しました',
+        seq: current.seq + 1,
+      }));
       void toggleComplete(task);
     },
     [byId, holdInPlace, sectionOf, toggleComplete],
@@ -146,14 +150,19 @@ export function TodayView() {
       todayCount={todoCount}
       fabPulse={isEmpty}
     >
+      <LiveAnnouncer message={announcement.text} seq={announcement.seq} />
       <main className="mx-auto flex w-full max-w-content-max flex-col gap-6 px-4 pt-1 md:px-8">
-        {error && (
-          <ErrorBanner message="タスクを読み込めませんでした" onRetry={retry} />
-        )}
-
-        {isLoading && <SkeletonTaskCard />}
-
-        {!isLoading && !error && (
+        <TaskListView
+          isLoading={isLoading}
+          error={error}
+          isEmpty={isEmpty}
+          onRetry={retry}
+          emptyState={{
+            icon: <CheckCheck size={40} aria-hidden="true" className="text-base-600" />,
+            title: '今日のタスクはありません',
+            description: '右下の＋からタスクを追加しましょう',
+          }}
+        >
           <>
             <TaskSection
               title="期限切れ"
@@ -180,21 +189,17 @@ export function TodayView() {
               {[...groups.starred, ...heldIn('starred')].map((task) => renderCard(task))}
             </TaskSection>
 
-            {isEmpty ? (
-              <EmptyState
-                icon={<CheckCheck size={40} aria-hidden="true" className="text-base-600" />}
-                title="今日のタスクはありません"
-                description="右下の＋からタスクを追加しましょう"
-              />
-            ) : (
-              <CompletedSection count={groups.completed.length}>
-                {groups.completed
-                  .filter((task) => !justCompleted.has(task.id))
-                  .map((task) => renderCard(task, 'completed'))}
-              </CompletedSection>
-            )}
+            <CompletedSection
+              count={groups.completed.length}
+              hasMore={hasMoreCompleted}
+              onLoadMore={loadMoreCompleted}
+            >
+              {groups.completed
+                .filter((task) => !justCompleted.has(task.id))
+                .map((task) => renderCard(task, 'completed'))}
+            </CompletedSection>
           </>
-        )}
+        </TaskListView>
       </main>
     </AppShell>
   );

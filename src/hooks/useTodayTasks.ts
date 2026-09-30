@@ -23,6 +23,8 @@ export interface UseTodayTasks {
   isLoading: boolean;
   error: Error | null;
   retry: () => void;
+  hasMoreCompleted: boolean;
+  loadMoreCompleted: () => void;
 }
 
 export function useTodayTasks(): UseTodayTasks {
@@ -35,6 +37,8 @@ export function useTodayTasks(): UseTodayTasks {
   const [loadedCompleted, setLoadedCompleted] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [nonce, setNonce] = useState(0);
+  const [completedLimit, setCompletedLimit] = useState(COMPLETED_PAGE_SIZE);
+  const [reachedEnd, setReachedEnd] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -59,10 +63,11 @@ export function useTodayTasks(): UseTodayTasks {
         tasks,
         where('status', '==', 'completed'),
         orderBy('completedAt', 'desc'),
-        limit(COMPLETED_PAGE_SIZE),
+        limit(completedLimit),
       ),
       (snapshot) => {
         setCompleted(snapshot.docs.map((doc) => ({ task: toTask(doc), subtaskCount: subtaskCountOf(doc) })));
+        setReachedEnd(snapshot.size < completedLimit);
         setLoadedCompleted(true);
       },
       (snapshotError) => {
@@ -75,7 +80,7 @@ export function useTodayTasks(): UseTodayTasks {
       unsubscribeTodo();
       unsubscribeCompleted();
     };
-  }, [user, nonce]);
+  }, [user, nonce, completedLimit]);
 
   const groups = useMemo(() => {
     const now = new Date();
@@ -92,5 +97,7 @@ export function useTodayTasks(): UseTodayTasks {
     isLoading: !loadedTodo || !loadedCompleted || listsLoading,
     error,
     retry,
+    hasMoreCompleted: !reachedEnd,
+    loadMoreCompleted: () => setCompletedLimit((value) => value + COMPLETED_PAGE_SIZE),
   };
 }

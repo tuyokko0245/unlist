@@ -3,13 +3,23 @@
 import { ChevronRight } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 
+import { Button } from '@/components/primitives/Button';
+
 export interface CompletedSectionProps {
   count: number;
   defaultExpanded?: boolean;
+  hasMore?: boolean;
+  onLoadMore?: () => void;
   children: ReactNode;
 }
 
-export function CompletedSection({ count, defaultExpanded = false, children }: CompletedSectionProps) {
+export function CompletedSection({
+  count,
+  defaultExpanded = false,
+  hasMore = false,
+  onLoadMore,
+  children,
+}: CompletedSectionProps) {
   const [expanded, setExpanded] = useState(defaultExpanded);
 
   if (count === 0) return null;
@@ -30,7 +40,18 @@ export function CompletedSection({ count, defaultExpanded = false, children }: C
         />
         完了済み ({count}件)
       </button>
-      {expanded && <div className="flex flex-col gap-2">{children}</div>}
+      {expanded && (
+        <>
+          <div className="flex flex-col gap-2">{children}</div>
+          {hasMore && onLoadMore && (
+            <div className="flex justify-center pt-1">
+              <Button size="sm" variant="secondary" onClick={onLoadMore}>
+                もっと見る
+              </Button>
+            </div>
+          )}
+        </>
+      )}
     </section>
   );
 }
