@@ -1,9 +1,14 @@
-export function AppIcon() {
+export function AppIcon({ size = 'lg' }: { size?: 'sm' | 'lg' }) {
+  const isSmall = size === 'sm';
   return (
-    <div className="flex size-22 items-center justify-center rounded-xl bg-icon-bg shadow-icon">
+    <div
+      className={`flex items-center justify-center bg-icon-bg ${
+        isSmall ? 'size-8 rounded-xs' : 'size-22 rounded-xl shadow-icon'
+      }`}
+    >
       <svg
-        width="48"
-        height="48"
+        width={isSmall ? 20 : 48}
+        height={isSmall ? 20 : 48}
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"

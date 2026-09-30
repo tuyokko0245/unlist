@@ -1,0 +1,36 @@
+'use client';
+
+import { ChevronRight } from 'lucide-react';
+import { useState, type ReactNode } from 'react';
+
+export interface CompletedSectionProps {
+  count: number;
+  defaultExpanded?: boolean;
+  children: ReactNode;
+}
+
+export function CompletedSection({ count, defaultExpanded = false, children }: CompletedSectionProps) {
+  const [expanded, setExpanded] = useState(defaultExpanded);
+
+  if (count === 0) return null;
+
+  return (
+    <section className="flex flex-col gap-2">
+      <button
+        type="button"
+        aria-expanded={expanded}
+        onClick={() => setExpanded((value) => !value)}
+        className="flex h-13 w-full items-center gap-2 rounded-card border border-border bg-surface px-4 text-left text-[15px] font-bold text-fg-tertiary"
+      >
+        <ChevronRight
+          size={16}
+          strokeWidth={2.4}
+          aria-hidden="true"
+          className={`transition-transform duration-200 ${expanded ? 'rotate-90' : ''}`}
+        />
+        完了済み ({count}件)
+      </button>
+      {expanded && <div className="flex flex-col gap-2">{children}</div>}
+    </section>
+  );
+}

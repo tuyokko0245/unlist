@@ -99,7 +99,7 @@
   --radius-xl: 24px;
 
   --card-tint-strength: 20%;
-  --card-border-strength: 55%;
+  --card-border-strength: 88%;
   --card-bar-width: 6px;
 
   --spacing-header: 56px;
@@ -280,7 +280,7 @@ body {
     color-mix(
       in srgb,
       var(--list-color, var(--color-base-300)) var(--card-border-strength),
-      #ffffff
+      var(--color-fg)
     );
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-sm);
@@ -315,7 +315,7 @@ body {
     );
     border-color: color-mix(
       in srgb,
-      var(--list-color, var(--color-base-300)) 30%,
+      var(--list-color, var(--color-base-300)) 45%,
       var(--color-surface)
     );
   }
@@ -349,5 +349,54 @@ body {
   *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+@keyframes snackbar-in {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fab-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: var(--shadow-fab);
+  }
+  50% {
+    transform: scale(1.08);
+    box-shadow: var(--shadow-icon);
+  }
+}
+
+@keyframes skeleton-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+.skeleton-card {
+  background: linear-gradient(
+    90deg,
+    var(--color-surface) 25%,
+    var(--color-chip) 50%,
+    var(--color-surface) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.4s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-card {
+    animation: none;
   }
 }
