@@ -38,12 +38,14 @@ export function TaskCard({
       data-done={isDone}
       onClick={() => onOpen(task.id)}
     >
-      <div className="flex items-center gap-0.5" onClick={(event) => event.stopPropagation()}>
-        <TaskCheckbox
-          checked={isDone}
-          taskTitle={task.title}
-          onChange={(next) => onToggleComplete(task.id, next ? 'completed' : 'todo')}
-        />
+      <div className="flex items-center gap-0.5">
+        <span className="contents" onClick={(event) => event.stopPropagation()}>
+          <TaskCheckbox
+            checked={isDone}
+            taskTitle={task.title}
+            onChange={(next) => onToggleComplete(task.id, next ? 'completed' : 'todo')}
+          />
+        </span>
         <h3
           className={`min-w-0 flex-1 truncate text-body-lg ${
             isDone ? 'text-fg-done line-through' : 'text-fg'
@@ -51,11 +53,13 @@ export function TaskCard({
         >
           {task.title}
         </h3>
-        <StarButton
-          isStarred={task.isStarred}
-          taskTitle={task.title}
-          onToggle={(next) => onToggleStar(task.id, next)}
-        />
+        <span className="contents" onClick={(event) => event.stopPropagation()}>
+          <StarButton
+            isStarred={task.isStarred}
+            taskTitle={task.title}
+            onToggle={(next) => onToggleStar(task.id, next)}
+          />
+        </span>
       </div>
 
       <div className="mt-0.5 ml-[34px] flex items-center gap-2 overflow-hidden">
