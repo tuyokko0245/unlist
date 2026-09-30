@@ -1,7 +1,7 @@
 import type { QueryDocumentSnapshot } from 'firebase/firestore';
 
-import type { List, Task } from '@/types/domain';
-import type { ListDoc, TaskDoc } from '@/types/firestore';
+import type { List, Subtask, Task } from '@/types/domain';
+import type { ListDoc, SubtaskDoc, TaskDoc } from '@/types/firestore';
 
 export function toList(snapshot: QueryDocumentSnapshot<ListDoc>): List {
   const data = snapshot.data();
@@ -40,4 +40,15 @@ export function toTask(snapshot: QueryDocumentSnapshot<TaskDoc>): Task {
 export function subtaskCountOf(snapshot: QueryDocumentSnapshot<TaskDoc>): { done: number; total: number } {
   const data = snapshot.data();
   return { done: data.subtaskDone ?? 0, total: data.subtaskTotal ?? 0 };
+}
+
+export function toSubtask(snapshot: QueryDocumentSnapshot<SubtaskDoc>): Subtask {
+  const data = snapshot.data();
+  return {
+    id: snapshot.id,
+    title: data.title,
+    isCompleted: data.isCompleted,
+    order: data.order,
+    createdAt: data.createdAt?.toDate() ?? new Date(0),
+  };
 }

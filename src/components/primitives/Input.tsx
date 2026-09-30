@@ -21,6 +21,7 @@ export interface InputProps {
   autoComplete?: string;
   inputMode?: 'text' | 'email';
   size?: 'md' | 'lg';
+  emphasis?: boolean;
   ref?: Ref<HTMLInputElement>;
 }
 
@@ -46,6 +47,7 @@ export function Input({
   autoComplete,
   inputMode,
   size = 'lg',
+  emphasis = false,
   ref,
 }: InputProps) {
   const [revealed, setRevealed] = useState(false);
@@ -84,7 +86,8 @@ export function Input({
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy}
           className={[
-            'input-field w-full rounded-md border bg-input px-3.5 text-body text-fg',
+            'input-field w-full rounded-md border bg-input px-3.5 text-fg',
+            emphasis ? 'text-h2' : 'text-body',
             'placeholder:text-fg-placeholder transition-[border-color,box-shadow] duration-150',
             size === 'lg' ? 'h-13' : 'h-11',
             isPassword ? 'pr-13' : '',

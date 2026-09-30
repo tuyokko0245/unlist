@@ -1,8 +1,16 @@
 import { getApp, getApps, initializeApp } from 'firebase/app'
 import { getAI, GoogleAIBackend } from 'firebase/ai'
 import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check'
-import { getAuth } from 'firebase/auth'
-import { getFirestore } from 'firebase/firestore'
+import { connectAuthEmulator, getAuth } from 'firebase/auth'
+import {
+  connectFirestoreEmulator,
+  getFirestore,
+  initializeFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager,
+} from 'firebase/firestore'
+
+const useEmulators = process.env.NEXT_PUBLIC_USE_EMULATORS === '1'
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -15,7 +23,7 @@ const firebaseConfig = {
 
 export const app = getApps().length ? getApp() : initializeApp(firebaseConfig)
 
-if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY) {
+if (!useEmulators && typeof window !== 'undefined' && process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY) {
   initializeAppCheck(app, {
     provider: new ReCaptchaEnterpriseProvider(process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY),
     isTokenAutoRefreshEnabled: true,
@@ -23,5 +31,17 @@ if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY)
 }
 
 export const auth = getAuth(app)
-export const db = getFirestore(app)
+
+export const db =
+  typeof window === 'undefined'
+    ? getFirestore(app)
+    : initializeFirestore(app, {
+        localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
+      })
+
 export const ai = getAI(app, { backend: new GoogleAIBackend() })
+
+if (useEmulators && typeof window !== 'undefined') {
+  connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true })
+  connectFirestoreEmulator(db, '127.0.0.1', 8080)
+}

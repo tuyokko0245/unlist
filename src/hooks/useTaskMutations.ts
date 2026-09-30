@@ -1,14 +1,14 @@
 'use client';
 
-import { deleteDoc, getDoc, setDoc, Timestamp, updateDoc } from 'firebase/firestore';
+import { getDoc, getDocs, Timestamp, updateDoc, writeBatch } from 'firebase/firestore';
 import { useCallback, useRef } from 'react';
 
 import { useAuth } from '@/hooks/useAuth';
 import { useSnackbar } from '@/hooks/useSnackbar';
 import { db } from '@/lib/firebase/config';
-import { taskDoc } from '@/lib/firebase/refs';
+import { subtaskDoc, subtasksCollection, taskDoc } from '@/lib/firebase/refs';
 import type { Task } from '@/types/domain';
-import type { TaskDoc } from '@/types/firestore';
+import type { SubtaskDoc, TaskDoc } from '@/types/firestore';
 
 export interface UseTaskMutations {
   toggleComplete: (task: Task) => Promise<void>;
@@ -19,14 +19,23 @@ export interface UseTaskMutations {
 export function useTaskMutations(): UseTaskMutations {
   const { user } = useAuth();
   const { showSnackbar } = useSnackbar();
-  const deleted = useRef<{ id: string; data: TaskDoc } | null>(null);
+  const deleted = useRef<{
+    id: string;
+    data: TaskDoc;
+    subtasks: { id: string; data: SubtaskDoc }[];
+  } | null>(null);
 
   const undoDelete = useCallback(async () => {
     if (!user || !deleted.current) return;
     const snapshot = deleted.current;
     deleted.current = null;
     try {
-      await setDoc(taskDoc(db, user.uid, snapshot.id), snapshot.data);
+      const batch = writeBatch(db);
+      batch.set(taskDoc(db, user.uid, snapshot.id), snapshot.data);
+      for (const subtask of snapshot.subtasks) {
+        batch.set(subtaskDoc(db, user.uid, snapshot.id, subtask.id), subtask.data);
+      }
+      await batch.commit();
     } catch {
       showSnackbar({ message: 'タスクを元に戻せませんでした', variant: 'error' });
     }
@@ -69,10 +78,18 @@ export function useTaskMutations(): UseTaskMutations {
       if (!user) return;
       const ref = taskDoc(db, user.uid, task.id);
       try {
-        const snapshot = await getDoc(ref);
+        const [snapshot, subtaskSnapshot] = await Promise.all([
+          getDoc(ref),
+          getDocs(subtasksCollection(db, user.uid, task.id)),
+        ]);
         const data = snapshot.data();
-        if (data) deleted.current = { id: task.id, data };
-        await deleteDoc(ref);
+        const subtasks = subtaskSnapshot.docs.map((doc) => ({ id: doc.id, data: doc.data() }));
+        if (data) deleted.current = { id: task.id, data, subtasks };
+
+        const batch = writeBatch(db);
+        for (const doc of subtaskSnapshot.docs) batch.delete(doc.ref);
+        batch.delete(ref);
+        await batch.commit();
         showSnackbar({
           message: 'タスクを削除しました',
           variant: 'warning',

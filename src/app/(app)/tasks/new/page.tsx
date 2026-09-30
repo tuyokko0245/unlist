@@ -1,11 +1,16 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 
-import { QuickTaskForm } from '@/components/form/QuickTaskForm';
+import { NewTaskScreen } from '@/components/form/NewTaskScreen';
 
 export const metadata: Metadata = {
   title: 'タスクを追加 - ウンlist',
 };
 
 export default function NewTaskPage() {
-  return <QuickTaskForm />;
+  return (
+    <Suspense>
+      <NewTaskScreen />
+    </Suspense>
+  );
 }

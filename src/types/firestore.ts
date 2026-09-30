@@ -33,3 +33,10 @@ export interface TaskDoc {
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }
+
+export interface SubtaskDoc {
+  title: string;
+  isCompleted: boolean;
+  order: number;
+  createdAt: Timestamp;
+}

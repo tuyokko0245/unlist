@@ -1,5 +1,6 @@
-import { PlaceholderScreen } from '@/components/layout/PlaceholderScreen';
+import { EditTaskScreen } from '@/components/form/EditTaskScreen';
 
-export default function TaskDetailPage() {
-  return <PlaceholderScreen title="タスクを編集" note="Tier 1 #3 で実装します" />;
+export default async function TaskDetailPage({ params }: PageProps<'/tasks/[taskId]'>) {
+  const { taskId } = await params;
+  return <EditTaskScreen taskId={taskId} />;
 }
