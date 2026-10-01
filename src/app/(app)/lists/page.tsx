@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
 
-import { PlaceholderScreen } from '@/components/layout/PlaceholderScreen';
+import { ListManagerScreen } from '@/components/list/ListManagerScreen';
 
 export const metadata: Metadata = {
-  title: 'リスト管理 - ウンlist',
+  title: 'リストを管理 - ウンlist',
 };
 
 export default function ListsPage() {
-  return <PlaceholderScreen title="リスト管理" activeTab="tasks" note="Tier 2 #5 で実装します" />;
+  return <ListManagerScreen />;
 }

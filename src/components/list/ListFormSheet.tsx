@@ -21,6 +21,8 @@ export function ListFormSheet({ mode, list, onClose, onSubmit }: ListFormSheetPr
   const [color, setColor] = useState(list?.color ?? DEFAULT_BASE_COLOR);
   const [isSaving, setIsSaving] = useState(false);
 
+  const nameLocked = list?.isDefault ?? false;
+
   const handleSubmit = async () => {
     if (name.trim().length === 0) return;
     setIsSaving(true);
@@ -45,21 +47,37 @@ export function ListFormSheet({ mode, list, onClose, onSubmit }: ListFormSheetPr
           disabled={name.trim().length === 0}
           onClick={() => void handleSubmit()}
         >
-          {mode === 'create' ? '追加する' : '保存する'}
+          {mode === 'create' ? '作成' : '保存'}
         </Button>
       }
     >
-      <div className="flex flex-col gap-5 px-1 pt-2 pb-1">
-        <Input
-          id="list-name"
-          label="リスト名"
-          placeholder="例：仕事"
-          value={name}
-          onChange={setName}
-          maxLength={MAX_LIST_NAME}
-          autoFocus
-        />
-        <ColorPalette value={color} onChange={setColor} label="リストのカラー" />
+      <div className="flex flex-col gap-4 px-1 pt-2 pb-1">
+        {nameLocked ? (
+          <div className="flex flex-col gap-2">
+            <p className="pl-1 text-meta text-fg-secondary">リスト名</p>
+            <p className="flex h-13 items-center rounded-md border border-border bg-surface px-3.5 text-body text-fg-secondary">
+              {name}
+            </p>
+            <p className="pl-1 text-meta text-fg-tertiary">受信トレイの名前は変更できません</p>
+          </div>
+        ) : (
+          <Input
+            id="list-name"
+            label="リスト名"
+            placeholder="リスト名"
+            value={name}
+            onChange={setName}
+            maxLength={MAX_LIST_NAME}
+            autoFocus
+          />
+        )}
+
+        <div className="flex items-center gap-2">
+          <h3 className="section-label shrink-0">カラー</h3>
+          <span className="h-px flex-1 bg-border" aria-hidden="true" />
+        </div>
+
+        <ColorPalette value={color} onChange={setColor} label="リストのカラー" labelHidden />
       </div>
     </BottomSheet>
   );

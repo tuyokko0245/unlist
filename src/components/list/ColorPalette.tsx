@@ -10,6 +10,7 @@ export interface ColorPaletteProps {
   onChange: (color: string) => void;
   columns?: number;
   label: string;
+  labelHidden?: boolean;
 }
 
 const ARROW_STEP: Record<string, number> = {
@@ -17,7 +18,13 @@ const ARROW_STEP: Record<string, number> = {
   ArrowLeft: -1,
 };
 
-export function ColorPalette({ value, onChange, columns = 5, label }: ColorPaletteProps) {
+export function ColorPalette({
+  value,
+  onChange,
+  columns = 5,
+  label,
+  labelHidden = false,
+}: ColorPaletteProps) {
   const labelId = useId();
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -43,7 +50,7 @@ export function ColorPalette({ value, onChange, columns = 5, label }: ColorPalet
 
   return (
     <div className="flex flex-col gap-2">
-      <p id={labelId} className="pl-1 text-meta text-fg-secondary">
+      <p id={labelId} className={labelHidden ? 'sr-only' : 'pl-1 text-meta text-fg-secondary'}>
         {label}
       </p>
       <div

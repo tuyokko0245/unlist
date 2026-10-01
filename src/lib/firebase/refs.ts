@@ -51,3 +51,7 @@ export function subtaskDoc(
     subtaskId,
   ) as DocumentReference<SubtaskDoc>;
 }
+
+export function listDoc(firestore: Firestore, uid: string, listId: string): DocumentReference<ListDoc> {
+  return doc(firestore, 'users', uid, 'lists', listId) as DocumentReference<ListDoc>;
+}
