@@ -28,6 +28,7 @@ export interface AppShellProps {
   showFab?: boolean;
   fabPulse?: boolean;
   fabHref?: string;
+  onCreateList?: () => void;
   children: ReactNode;
 }
 
@@ -40,6 +41,7 @@ export function AppShell({
   showFab,
   fabPulse = false,
   fabHref = '/tasks/new',
+  onCreateList,
   children,
 }: AppShellProps) {
   const isOnline = useOnlineStatus();
@@ -48,7 +50,7 @@ export function AppShell({
 
   return (
     <div className="flex min-h-dvh flex-1">
-      {activeTab && <DesktopSidebar activeView={activeView} counts={counts} />}
+      {activeTab && <DesktopSidebar activeView={activeView} counts={counts} onCreateList={onCreateList} />}
 
       <div className="flex min-w-0 flex-1 flex-col">
         <OfflineBanner isOffline={!isOnline} />

@@ -26,15 +26,15 @@ export function buildTaskView(
   };
 }
 
-function byCreatedAt(a: TaskView, b: TaskView): number {
+export function byCreatedAt(a: TaskView, b: TaskView): number {
   return a.createdAt.getTime() - b.createdAt.getTime();
 }
 
-function byPriority(a: TaskView, b: TaskView): number {
+export function byPriority(a: TaskView, b: TaskView): number {
   return PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority];
 }
 
-function byDueDateAsc(a: TaskView, b: TaskView): number {
+export function byDueDateAsc(a: TaskView, b: TaskView): number {
   const left = a.dueDate?.getTime() ?? Number.POSITIVE_INFINITY;
   const right = b.dueDate?.getTime() ?? Number.POSITIVE_INFINITY;
   return left - right;

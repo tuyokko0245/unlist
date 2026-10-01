@@ -9,9 +9,10 @@ import { useLists } from '@/hooks/useLists';
 export interface DesktopSidebarProps {
   activeView: ActiveView;
   counts: Record<string, number>;
+  onCreateList?: () => void;
 }
 
-export function DesktopSidebar({ activeView, counts }: DesktopSidebarProps) {
+export function DesktopSidebar({ activeView, counts, onCreateList }: DesktopSidebarProps) {
   const { lists } = useLists();
   const router = useRouter();
 
@@ -28,7 +29,7 @@ export function DesktopSidebar({ activeView, counts }: DesktopSidebarProps) {
         onSelectToday={() => router.push('/today')}
         onSelectAll={() => router.push('/tasks')}
         onSelectList={(listId) => router.push(`/tasks?list=${listId}`)}
-        onCreateList={() => router.push('/lists')}
+        onCreateList={onCreateList ?? (() => router.push('/lists'))}
         onManageLists={() => router.push('/lists')}
         onOpenSettings={() => router.push('/settings')}
         showSettingsLink

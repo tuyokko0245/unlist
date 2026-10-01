@@ -473,3 +473,20 @@ body {
     opacity: 1;
   }
 }
+
+@keyframes drawer-in {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.app-drawer {
+  background: linear-gradient(
+    to bottom,
+    var(--color-bg-grad-top) 0%,
+    var(--color-surface) 22%
+  );
+}
