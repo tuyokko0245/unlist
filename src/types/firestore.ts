@@ -30,6 +30,7 @@ export interface TaskDoc {
   completedAt: Timestamp | null;
   subtaskDone?: number;
   subtaskTotal?: number;
+  repeatNextTaskId?: string | null;
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }

@@ -9,18 +9,20 @@ import { DueDateSheet } from '@/components/form/sheets/DueDateSheet';
 import { ListSelectSheet } from '@/components/form/sheets/ListSelectSheet';
 import { PrioritySheet } from '@/components/form/sheets/PrioritySheet';
 import { ReminderSheet } from '@/components/form/sheets/ReminderSheet';
+import { RepeatSheet } from '@/components/form/sheets/RepeatSheet';
 import { Button } from '@/components/primitives/Button';
 import { Input } from '@/components/primitives/Input';
 import { Textarea } from '@/components/primitives/Textarea';
 import { Toggle } from '@/components/primitives/Toggle';
 import type { TaskFormValues } from '@/hooks/useSaveTask';
 import { formatDueDate, formatJstDate, formatReminderDateTime, jstParts } from '@/lib/date/dueDate';
+import { formatRepeat } from '@/lib/repeat/nextDueDate';
 import type { SubtaskDraft } from '@/lib/task/subtaskDiff';
 import { PriorityBadge } from '@/components/task/TaskMeta';
 import type { List } from '@/types/domain';
 import { MAX_MEMO, MAX_TASK_TITLE } from '@/types/domain';
 
-type SheetKey = 'list' | 'priority' | 'dueDate' | 'reminder';
+type SheetKey = 'list' | 'priority' | 'dueDate' | 'reminder' | 'repeat';
 
 const WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土'];
 
@@ -224,9 +226,9 @@ export function TaskForm({
           <DetailRow
             icon={<Repeat size={20} aria-hidden="true" />}
             label="繰り返し"
-            value="なし"
-            isEmpty
-            disabled
+            value={formatRepeat(values.repeat)}
+            isEmpty={!values.repeat}
+            onClick={() => setOpenSheet('repeat')}
           />
         </div>
 
@@ -283,6 +285,13 @@ export function TaskForm({
         value={values.reminder}
         dueDate={values.dueDate}
         onSelect={(reminder) => patch({ reminder })}
+        onClose={() => setOpenSheet(null)}
+      />
+      <RepeatSheet
+        isOpen={openSheet === 'repeat'}
+        value={values.repeat}
+        dueDate={values.dueDate}
+        onSelect={(repeat) => patch({ repeat })}
         onClose={() => setOpenSheet(null)}
       />
     </div>

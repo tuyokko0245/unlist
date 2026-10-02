@@ -1,19 +1,94 @@
 'use client';
 
-import { getDoc, getDocs, Timestamp, updateDoc, writeBatch } from 'firebase/firestore';
+import { doc, getDoc, getDocs, Timestamp, updateDoc, writeBatch } from 'firebase/firestore';
 import { useCallback, useRef } from 'react';
 
 import { useAuth } from '@/hooks/useAuth';
 import { useSnackbar } from '@/hooks/useSnackbar';
 import { db } from '@/lib/firebase/config';
-import { subtaskDoc, subtasksCollection, taskDoc } from '@/lib/firebase/refs';
-import type { Task } from '@/types/domain';
+import { subtaskDoc, subtasksCollection, taskDoc, tasksCollection } from '@/lib/firebase/refs';
+import { nextDueDate, shiftReminder } from '@/lib/repeat/nextDueDate';
+import type { RepeatConfig, Task } from '@/types/domain';
 import type { SubtaskDoc, TaskDoc } from '@/types/firestore';
 
 export interface UseTaskMutations {
   toggleComplete: (task: Task) => Promise<void>;
   toggleStar: (task: Task) => Promise<void>;
   deleteTask: (task: Task) => Promise<void>;
+}
+
+async function completeRepeating(uid: string, task: Task, repeat: RepeatConfig) {
+  const completedAt = new Date();
+  const now = Timestamp.fromDate(completedAt);
+  const dueDate = nextDueDate(repeat, completedAt, task.dueDate);
+  const reminder = task.reminder ? shiftReminder(task.reminder, task.dueDate, dueDate) : null;
+  const subtaskSnapshot = await getDocs(subtasksCollection(db, uid, task.id));
+  const subtasks = subtaskSnapshot.docs
+    .map((snapshot) => snapshot.data())
+    .sort((a, b) => a.order - b.order);
+  const nextRef = doc(tasksCollection(db, uid));
+
+  const batch = writeBatch(db);
+  batch.update(taskDoc(db, uid, task.id), {
+    status: 'completed',
+    completedAt: now,
+    repeatNextTaskId: nextRef.id,
+    updatedAt: now,
+  });
+  batch.set(nextRef, {
+    title: task.title,
+    listId: task.listId,
+    status: 'todo',
+    priority: task.priority,
+    isStarred: task.isStarred,
+    dueDate: Timestamp.fromDate(dueDate),
+    reminder: reminder
+      ? { datetime: Timestamp.fromDate(reminder.datetime), isEnabled: reminder.isEnabled }
+      : null,
+    repeat,
+    memo: task.memo,
+    completedAt: null,
+    subtaskDone: 0,
+    subtaskTotal: subtasks.length,
+    repeatNextTaskId: null,
+    createdAt: now,
+    updatedAt: now,
+  });
+  subtasks.forEach((subtask, index) => {
+    batch.set(doc(subtasksCollection(db, uid, nextRef.id)), {
+      title: subtask.title,
+      isCompleted: false,
+      order: index,
+      createdAt: now,
+    });
+  });
+  await batch.commit();
+}
+
+async function uncompleteRepeating(uid: string, task: Task) {
+  const ref = taskDoc(db, uid, task.id);
+  const nextId = (await getDoc(ref)).data()?.repeatNextTaskId ?? null;
+  const batch = writeBatch(db);
+  batch.update(ref, {
+    status: 'todo',
+    completedAt: null,
+    repeatNextTaskId: null,
+    updatedAt: Timestamp.now(),
+  });
+
+  if (nextId) {
+    const nextRef = taskDoc(db, uid, nextId);
+    const next = (await getDoc(nextRef)).data();
+    const untouched =
+      next?.status === 'todo' && next.updatedAt.toMillis() === next.createdAt.toMillis();
+    if (untouched) {
+      const nextSubtasks = await getDocs(subtasksCollection(db, uid, nextId));
+      for (const subtask of nextSubtasks.docs) batch.delete(subtask.ref);
+      batch.delete(nextRef);
+    }
+  }
+
+  await batch.commit();
 }
 
 export function useTaskMutations(): UseTaskMutations {
@@ -46,6 +121,14 @@ export function useTaskMutations(): UseTaskMutations {
       if (!user) return;
       const nextCompleted = task.status !== 'completed';
       try {
+        if (task.repeat && nextCompleted) {
+          await completeRepeating(user.uid, task, task.repeat);
+          return;
+        }
+        if (task.repeat) {
+          await uncompleteRepeating(user.uid, task);
+          return;
+        }
         await updateDoc(taskDoc(db, user.uid, task.id), {
           status: nextCompleted ? 'completed' : 'todo',
           completedAt: nextCompleted ? Timestamp.now() : null,
