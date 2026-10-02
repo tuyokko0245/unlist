@@ -156,6 +156,109 @@ function lightenUntilReadable(h: number, s: number, l: number, bg: string, targe
   return hex;
 }
 
+export type SurfaceKey =
+  | 'grad-top'
+  | 'grad-btm'
+  | 'surface'
+  | 'surface-secondary'
+  | 'card'
+  | 'card-done'
+  | 'elevated'
+  | 'chip'
+  | 'border'
+  | 'border-strong';
+
+export type Surfaces = Record<SurfaceKey, string>;
+
+export const TEXT_TERTIARY = '#7A7072';
+export const DARK_TEXT_TERTIARY = '#949092';
+
+const DEFAULT_SURFACES_LIGHT: Surfaces = {
+  'grad-top': '#FFE8F4',
+  'grad-btm': '#FFF2F8',
+  surface: '#FEF4F9',
+  'surface-secondary': '#FFEDF6',
+  card: '#FEF4F9',
+  'card-done': '#FDF2F7',
+  elevated: '#FEF4F9',
+  chip: '#FFDCEE',
+  border: '#FBD3E7',
+  'border-strong': '#F5BDD9',
+};
+
+const DEFAULT_SURFACES_DARK: Surfaces = {
+  'grad-top': '#1D1319',
+  'grad-btm': '#141011',
+  surface: '#282022',
+  'surface-secondary': '#231A1F',
+  card: '#282022',
+  'card-done': '#1F1A1C',
+  elevated: '#2E2528',
+  chip: '#3E2531',
+  border: '#3A2E34',
+  'border-strong': '#4D3D45',
+};
+
+function readableSurface(h: number, s: number, l: number, text: string, target: number, isDark: boolean): string {
+  let lightness = clamp(l, 0, 100);
+  let hex = hslToHex(h, s, lightness);
+  while (contrastRatio(hex, text) < target && lightness > 0 && lightness < 100) {
+    lightness = isDark ? Math.max(0, lightness - 0.5) : Math.min(100, lightness + 0.5);
+    hex = hslToHex(h, s, lightness);
+  }
+  return hex;
+}
+
+export function surfaceTarget(key: SurfaceKey, isDark: boolean): number {
+  const reference = (isDark ? DEFAULT_SURFACES_DARK : DEFAULT_SURFACES_LIGHT)[key];
+  return Math.min(AA_CONTRAST, contrastRatio(reference, isDark ? DARK_TEXT_TERTIARY : TEXT_TERTIARY));
+}
+
+export function deriveSurfaces(baseColor: string, isDark: boolean): Surfaces {
+  const base = normalizeHex(baseColor);
+
+  if (base === DEFAULT_BASE) {
+    return { ...(isDark ? DEFAULT_SURFACES_DARK : DEFAULT_SURFACES_LIGHT) };
+  }
+
+  const { h, s } = hexToHsl(base);
+
+  if (isDark) {
+    const tone = (key: SurfaceKey, ratio: number, l: number) =>
+      readableSurface(h, s * ratio, l, DARK_TEXT_TERTIARY, surfaceTarget(key, true), true);
+    const surface = tone('surface', 0.12, 14.1);
+    return {
+      'grad-top': tone('grad-top', 0.23, 9.4),
+      'grad-btm': tone('grad-btm', 0.12, 7.1),
+      surface,
+      'surface-secondary': tone('surface-secondary', 0.17, 12),
+      card: surface,
+      'card-done': tone('card-done', 0.1, 11.2),
+      elevated: tone('elevated', 0.12, 16.3),
+      chip: tone('chip', 0.28, 19.4),
+      border: hslToHex(h, s * 0.13, 20.4),
+      'border-strong': hslToHex(h, s * 0.13, 27.1),
+    };
+  }
+
+  const vivid = Math.min(s * 1.12, 100);
+  const tone = (key: SurfaceKey, sat: number, l: number) =>
+    readableSurface(h, sat, l, TEXT_TERTIARY, surfaceTarget(key, false), false);
+  const surface = tone('surface', s * 0.93, 97.6);
+  return {
+    'grad-top': tone('grad-top', vivid, 95.5),
+    'grad-btm': tone('grad-btm', vivid, 97.5),
+    surface,
+    'surface-secondary': tone('surface-secondary', vivid, 96.5),
+    card: surface,
+    'card-done': tone('card-done', s * 0.82, 97.1),
+    elevated: surface,
+    chip: tone('chip', vivid, 93.1),
+    border: hslToHex(h, s * 0.93, 90.6),
+    'border-strong': hslToHex(h, s * 0.82, 85.1),
+  };
+}
+
 export function deriveRamp(baseColor: string, isDark: boolean): Ramp {
   const base = normalizeHex(baseColor);
 
@@ -186,6 +289,6 @@ export function deriveRamp(baseColor: string, isDark: boolean): Ramp {
     '400': hslToHex(h, s * 0.97, l - 3),
     '500': hslToHex(h, s * 0.81, l - 7),
     '600': hslToHex(h, s * 0.79, l - 13.5),
-    '700': darkenUntilReadable(h, s * 0.5, l - 41.5, WHITE, AA_CONTRAST),
+    '700': darkenUntilReadable(h, s * 0.5, l - 41.5, deriveSurfaces(base, false).chip, AA_CONTRAST),
   };
 }

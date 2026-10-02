@@ -4,7 +4,7 @@ import { ListChecks, Plus, Settings, Sun } from 'lucide-react';
 
 import type { List } from '@/types/domain';
 
-export type ActiveView = 'today' | 'all' | { listId: string };
+export type ActiveView = 'today' | 'all' | 'settings' | { listId: string };
 
 export interface ListNavProps {
   lists: List[];
@@ -144,6 +144,7 @@ export function ListNav({
           <NavRow
             icon={<Settings size={20} aria-hidden="true" className="text-base-600" />}
             label="設定"
+            active={activeView === 'settings'}
             onClick={onOpenSettings}
           />
         </>

@@ -8,6 +8,10 @@ import {
   WHITE,
   contrastRatio,
   deriveRamp,
+  deriveSurfaces,
+  surfaceTarget,
+  DARK_TEXT_TERTIARY,
+  TEXT_TERTIARY,
   hexToHsl,
   hslToHex,
   normalizeHex,
@@ -125,4 +129,41 @@ test('すべての段が正しい hex 形式を返す', () => {
       }
     }
   }
+});
+
+test('デフォルトカラーの面の色は現行のピンクをそのまま返す', () => {
+  assert.equal(deriveSurfaces(DEFAULT_BASE_COLOR, false).chip, '#FFDCEE');
+  assert.equal(deriveSurfaces(DEFAULT_BASE_COLOR, false)['grad-top'], '#FFE8F4');
+  assert.equal(deriveSurfaces(DEFAULT_BASE_COLOR, false).surface, '#FEF4F9');
+  assert.equal(deriveSurfaces(DEFAULT_BASE_COLOR, true).chip, '#3E2531');
+  assert.equal(deriveSurfaces(DEFAULT_BASE_COLOR, true).surface, '#282022');
+});
+
+test('20色すべてで、補助テキストの読みやすさがデフォルトのピンク以上（AA を上限）', () => {
+  const readOn = ['grad-top', 'grad-btm', 'surface', 'surface-secondary', 'card', 'card-done', 'elevated', 'chip'] as const;
+  for (const color of PALETTE_20) {
+    for (const [isDark, text] of [[false, TEXT_TERTIARY], [true, DARK_TEXT_TERTIARY]] as const) {
+      const surfaces = deriveSurfaces(color.light, isDark);
+      for (const key of readOn) {
+        const ratio = contrastRatio(text, surfaces[key]);
+        assert.ok(ratio >= surfaceTarget(key, isDark) - 0.001, `${color.name} ${isDark ? 'dark' : 'light'} ${key} ${surfaces[key]} = ${ratio.toFixed(2)}:1`);
+      }
+    }
+  }
+});
+
+test('20色すべてで、見出しピルの文字（base-700）がピル（chip）に対して AA を満たす', () => {
+  for (const color of PALETTE_20) {
+    for (const isDark of [false, true]) {
+      const ratio = contrastRatio(deriveRamp(color.light, isDark)['700'], deriveSurfaces(color.light, isDark).chip);
+      assert.ok(ratio >= AA_CONTRAST, `${color.name} ${isDark ? 'dark' : 'light'} = ${ratio.toFixed(2)}:1`);
+    }
+  }
+});
+
+test('面の色は選んだテーマの色相を持つ（グレイッシュホワイトは無彩色）', () => {
+  const yellow = hexToHsl(deriveSurfaces('#FFF1A8', false).chip);
+  assert.ok(Math.abs(yellow.h - hexToHsl('#FFF1A8').h) < 3, `h=${yellow.h}`);
+  const gray = hexToHsl(deriveSurfaces('#E8E8E8', false).chip);
+  assert.ok(gray.s < 1, `s=${gray.s}`);
 });

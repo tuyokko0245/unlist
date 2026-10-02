@@ -1,11 +1,13 @@
-import { deriveRamp, normalizeHex, type Ramp } from './deriveRamp';
+import { deriveRamp, deriveSurfaces, normalizeHex, type Ramp, type Surfaces } from './deriveRamp';
 
 export const THEME_STORAGE_KEY = 'unlist.theme';
 
+export type ThemeTokens = Ramp & Surfaces;
+
 export interface CachedTheme {
   baseColor: string;
-  light: Ramp;
-  dark: Ramp;
+  light: ThemeTokens;
+  dark: ThemeTokens;
 }
 
 export function prefersDark(): boolean {
@@ -15,8 +17,8 @@ export function prefersDark(): boolean {
   );
 }
 
-export function applyRamp(ramp: Ramp, root: HTMLElement): void {
-  for (const [step, value] of Object.entries(ramp)) {
+export function applyRamp(tokens: ThemeTokens, root: HTMLElement): void {
+  for (const [step, value] of Object.entries(tokens)) {
     root.style.setProperty(`--app-base-${step}`, value);
   }
 }
@@ -25,8 +27,8 @@ export function buildTheme(baseColor: string): CachedTheme {
   const hex = normalizeHex(baseColor);
   return {
     baseColor: hex,
-    light: deriveRamp(hex, false),
-    dark: deriveRamp(hex, true),
+    light: { ...deriveRamp(hex, false), ...deriveSurfaces(hex, false) },
+    dark: { ...deriveRamp(hex, true), ...deriveSurfaces(hex, true) },
   };
 }
 
