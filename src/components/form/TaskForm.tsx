@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { DetailRow } from '@/components/form/DetailRow';
 import { SubtaskEditor } from '@/components/form/SubtaskEditor';
+import { AiSubtaskSheet } from '@/components/form/sheets/AiSubtaskSheet';
 import { DueDateSheet } from '@/components/form/sheets/DueDateSheet';
 import { ListSelectSheet } from '@/components/form/sheets/ListSelectSheet';
 import { PrioritySheet } from '@/components/form/sheets/PrioritySheet';
@@ -17,12 +18,12 @@ import { Toggle } from '@/components/primitives/Toggle';
 import type { TaskFormValues } from '@/hooks/useSaveTask';
 import { formatDueDate, formatJstDate, formatReminderDateTime, jstParts } from '@/lib/date/dueDate';
 import { formatRepeat } from '@/lib/repeat/nextDueDate';
-import type { SubtaskDraft } from '@/lib/task/subtaskDiff';
+import { createTempId, type SubtaskDraft } from '@/lib/task/subtaskDiff';
 import { PriorityBadge } from '@/components/task/TaskMeta';
 import type { List } from '@/types/domain';
 import { MAX_MEMO, MAX_TASK_TITLE } from '@/types/domain';
 
-type SheetKey = 'list' | 'priority' | 'dueDate' | 'reminder' | 'repeat';
+type SheetKey = 'list' | 'priority' | 'dueDate' | 'reminder' | 'repeat' | 'ai';
 
 const WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土'];
 
@@ -240,7 +241,12 @@ export function TaskForm({
             </span>
           )}
         </div>
-        <SubtaskEditor subtasks={subtasks} onChange={setSubtasks} />
+        <SubtaskEditor
+          subtasks={subtasks}
+          onChange={setSubtasks}
+          onRequestAi={() => setOpenSheet('ai')}
+          aiDisabled={values.title.trim().length === 0}
+        />
 
         <h2 className="section-label mt-5 mb-2.5 w-fit">メモ</h2>
         <Textarea
@@ -285,6 +291,33 @@ export function TaskForm({
         value={values.reminder}
         dueDate={values.dueDate}
         onSelect={(reminder) => patch({ reminder })}
+        onClose={() => setOpenSheet(null)}
+      />
+      <AiSubtaskSheet
+        isOpen={openSheet === 'ai'}
+        input={{
+          title: values.title,
+          listName: selectedList?.name ?? '',
+          memo: values.memo,
+          existing: subtasks.map((subtask) => subtask.title),
+        }}
+        onAdd={(titles) => {
+          const seed = Date.now() * 10;
+          setSubtasks((current) => [
+            ...current,
+            ...titles.map((title, index) => ({
+              id: createTempId(seed + index),
+              title,
+              isCompleted: false,
+              order: current.length + index,
+            })),
+          ]);
+          setOpenSheet(null);
+        }}
+        onManual={() => {
+          setOpenSheet(null);
+          requestAnimationFrame(() => document.getElementById('subtask-new')?.focus());
+        }}
         onClose={() => setOpenSheet(null)}
       />
       <RepeatSheet

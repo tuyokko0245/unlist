@@ -86,6 +86,7 @@ export function SubtaskEditor({ subtasks, onChange, onRequestAi, aiDisabled = tr
         <Plus size={18} strokeWidth={2.2} aria-hidden="true" className="shrink-0 text-base-600" />
         <input
           ref={inputRef}
+          id="subtask-new"
           value={draftTitle}
           onChange={(event) => setDraftTitle(event.target.value)}
           onKeyDown={handleKeyDown}
