@@ -167,3 +167,26 @@ test('面の色は選んだテーマの色相を持つ（グレイッシュホ�
   const gray = hexToHsl(deriveSurfaces('#E8E8E8', false).chip);
   assert.ok(gray.s < 1, `s=${gray.s}`);
 });
+
+test('20色すべてで、チェックの枠（base-700）がリスト色のカード（20%）に対して 3:1 以上', () => {
+  const mix = (hex: string) => {
+    const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
+    const channel = (v: number) => Math.round(v * 0.2 + 255 * 0.8).toString(16).padStart(2, '0');
+    return `#${channel(r)}${channel(g)}${channel(b)}`.toUpperCase();
+  };
+  for (const theme of PALETTE_20) {
+    const ring = deriveRamp(theme.light, false)['700'];
+    for (const list of PALETTE_20) {
+      const ratio = contrastRatio(ring, mix(list.light));
+      assert.ok(ratio >= 3, `${theme.name} × ${list.name} = ${ratio.toFixed(2)}:1`);
+    }
+  }
+});
+
+test('デフォルトのピンクでは、補助テキストがすべての面に対して AA を満たす', () => {
+  const surfaces = deriveSurfaces(DEFAULT_BASE_COLOR, false);
+  for (const key of ['grad-top', 'grad-btm', 'surface', 'surface-secondary', 'card-done', 'chip'] as const) {
+    const ratio = contrastRatio(TEXT_TERTIARY, surfaces[key]);
+    assert.ok(ratio >= AA_CONTRAST, `${key} ${surfaces[key]} = ${ratio.toFixed(2)}:1`);
+  }
+});

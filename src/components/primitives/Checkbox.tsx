@@ -24,7 +24,7 @@ export function Checkbox({ id, checked, label, disabled = false, onChange }: Che
       className="-ml-2.5 flex size-tap-min shrink-0 items-center justify-center rounded-full disabled:opacity-40"
     >
       <span
-        className={`flex size-[22px] items-center justify-center rounded-full border-2 border-base-600 transition-colors duration-150 ${
+        className={`flex size-[22px] items-center justify-center rounded-full border-2 border-base-700 transition-colors duration-150 ${
           checked ? 'bg-base-600' : ''
         }`}
       >

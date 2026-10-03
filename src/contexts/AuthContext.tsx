@@ -21,6 +21,7 @@ import {
 
 import { ensureUserBootstrap } from '@/lib/firebase/bootstrap';
 import { auth, db } from '@/lib/firebase/config';
+import { unregisterDevice } from '@/lib/firebase/messaging';
 
 export type AuthStatus = 'loading' | 'signedOut' | 'bootstrapping' | 'ready' | 'error';
 
@@ -81,6 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await createUserWithEmailAndPassword(auth, email.trim(), password);
       },
       signOut: async () => {
+        await unregisterDevice(auth.currentUser?.uid ?? null);
         await firebaseSignOut(auth);
       },
       retryBootstrap,

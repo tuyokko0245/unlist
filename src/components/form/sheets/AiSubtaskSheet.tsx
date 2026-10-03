@@ -46,7 +46,7 @@ function SuggestionList({
             >
               <span
                 aria-hidden="true"
-                className={`flex size-6 shrink-0 items-center justify-center rounded-[7px] border-2 border-base-300 ${
+                className={`flex size-6 shrink-0 items-center justify-center rounded-[7px] border-2 border-base-700 ${
                   on ? 'bg-base-300' : ''
                 }`}
               >

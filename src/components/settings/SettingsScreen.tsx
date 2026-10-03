@@ -20,7 +20,7 @@ import { useSettings } from '@/hooks/useSettings';
 import { useSettingsMutations } from '@/hooks/useSettingsMutations';
 import { useSnackbar } from '@/hooks/useSnackbar';
 import { authErrorMessage, getAuthErrorCode } from '@/lib/auth/authErrorMessage';
-import { registerDevice, unregisterDevice } from '@/lib/firebase/messaging';
+import { registerDevice } from '@/lib/firebase/messaging';
 import packageJson from '../../../package.json';
 
 const SAVE_ERROR = '保存できませんでした。通信環境を確認してください';
@@ -77,12 +77,11 @@ export function SettingsScreen() {
     });
     if (!accepted) return;
     try {
-      await unregisterDevice(user?.uid ?? null);
       await signOut();
     } catch {
       showSnackbar({ message: 'ログアウトできませんでした。もう一度お試しください', variant: 'error' });
     }
-  }, [confirm, signOut, showSnackbar, user]);
+  }, [confirm, signOut, showSnackbar]);
 
   const runDeletion = useCallback(() => {
     const run = async (): Promise<void> => {

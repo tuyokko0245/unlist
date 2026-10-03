@@ -170,7 +170,7 @@ export type SurfaceKey =
 
 export type Surfaces = Record<SurfaceKey, string>;
 
-export const TEXT_TERTIARY = '#7A7072';
+export const TEXT_TERTIARY = '#6D6466';
 export const DARK_TEXT_TERTIARY = '#949092';
 
 const DEFAULT_SURFACES_LIGHT: Surfaces = {
