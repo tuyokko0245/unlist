@@ -18,7 +18,7 @@ export interface SettingsContextValue {
 const DEFAULT_SETTINGS: UserSettings = {
   baseColor: DEFAULT_BASE_COLOR,
   notificationsEnabled: false,
-  fcmToken: null,
+  fcmTokens: [],
 };
 
 export const SettingsContext = createContext<SettingsContextValue | null>(null);

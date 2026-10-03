@@ -4,6 +4,7 @@ import { useState } from 'react';
 
 import { BottomSheet } from '@/components/layout/BottomSheet';
 import { Button } from '@/components/primitives/Button';
+import { useSettings } from '@/hooks/useSettings';
 import { createJstDate, jstParts, toDueDateInputValue } from '@/lib/date/dueDate';
 import type { ReminderConfig } from '@/types/domain';
 
@@ -47,6 +48,7 @@ function ReminderSheetBody({
     toDateValue(value?.datetime ?? dueDate ?? new Date()),
   );
   const [timeValue, setTimeValue] = useState(() => toTimeValue(value?.datetime ?? null));
+  const { notificationsEnabled } = useSettings().settings;
 
   return (
     <div className="flex flex-col gap-3 px-3 pt-1 pb-1">
@@ -76,9 +78,11 @@ function ReminderSheetBody({
         />
       </div>
 
-      <p className="text-meta text-fg-tertiary">
-        通知の送信は Tier 4 で実装します。ここでの設定は保存されます
-      </p>
+      <div className="flex flex-col gap-1 text-meta text-fg-tertiary">
+        <p>指定した時刻から数分〜20分ほど遅れて届くことがあります</p>
+        {!notificationsEnabled && <p>設定画面で「通知を受け取る」をオンにすると届きます</p>}
+        <p>iPhone ではホーム画面に追加すると通知が届くようになります</p>
+      </div>
 
       <div className="flex flex-col gap-2 pt-1">
         <Button
@@ -86,7 +90,8 @@ function ReminderSheetBody({
           fullWidth
           onClick={() => {
             const datetime = buildDateTime(dateValue, timeValue);
-            onSelect(datetime ? { datetime, isEnabled: true } : null);
+            const unchanged = value && datetime && value.datetime.getTime() === datetime.getTime();
+            onSelect(datetime ? { datetime, isEnabled: true, sentAt: unchanged ? value.sentAt ?? null : null } : null);
             onClose();
           }}
         >

@@ -15,6 +15,7 @@ export interface List {
 export interface ReminderConfig {
   datetime: Date;
   isEnabled: boolean;
+  sentAt?: Date | null;
 }
 
 export interface RepeatConfig {
@@ -50,7 +51,7 @@ export interface Subtask {
 export interface UserSettings {
   baseColor: string;
   notificationsEnabled: boolean;
-  fcmToken: string | null;
+  fcmTokens: string[];
 }
 
 export interface TaskView extends Task {

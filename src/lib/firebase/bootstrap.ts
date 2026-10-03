@@ -24,7 +24,7 @@ export function buildDefaultSettings(): UserSettingsDoc {
   return {
     baseColor: DEFAULT_BASE_COLOR,
     notificationsEnabled: false,
-    fcmToken: null,
+    fcmTokens: [],
   };
 }
 

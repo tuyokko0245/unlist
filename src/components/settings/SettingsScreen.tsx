@@ -20,6 +20,7 @@ import { useSettings } from '@/hooks/useSettings';
 import { useSettingsMutations } from '@/hooks/useSettingsMutations';
 import { useSnackbar } from '@/hooks/useSnackbar';
 import { authErrorMessage, getAuthErrorCode } from '@/lib/auth/authErrorMessage';
+import { registerDevice, unregisterDevice } from '@/lib/firebase/messaging';
 import packageJson from '../../../package.json';
 
 const SAVE_ERROR = '保存できませんでした。通信環境を確認してください';
@@ -36,6 +37,7 @@ export function SettingsScreen() {
   const isOnline = useOnlineStatus();
 
   const [isPwaOpen, setIsPwaOpen] = useState(false);
+  const [isUpdatingNotifications, setIsUpdatingNotifications] = useState(false);
   const [isAskingPassword, setIsAskingPassword] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -58,9 +60,14 @@ export function SettingsScreen() {
         showSnackbar({ message: 'ブラウザの通知が許可されていません', variant: 'warning' });
         return;
       }
+      const token = user ? await registerDevice(user.uid, settings.fcmTokens).catch(() => null) : null;
+      if (!token) {
+        showSnackbar({ message: 'この端末では通知を登録できませんでした', variant: 'error' });
+        return;
+      }
       await setNotificationsEnabled(true).catch(() => showSnackbar({ message: SAVE_ERROR, variant: 'error' }));
     },
-    [permission, request, setNotificationsEnabled, showSnackbar],
+    [permission, request, setNotificationsEnabled, showSnackbar, user, settings.fcmTokens],
   );
 
   const logout = useCallback(async () => {
@@ -70,11 +77,12 @@ export function SettingsScreen() {
     });
     if (!accepted) return;
     try {
+      await unregisterDevice(user?.uid ?? null);
       await signOut();
     } catch {
       showSnackbar({ message: 'ログアウトできませんでした。もう一度お試しください', variant: 'error' });
     }
-  }, [confirm, signOut, showSnackbar]);
+  }, [confirm, signOut, showSnackbar, user]);
 
   const runDeletion = useCallback(() => {
     const run = async (): Promise<void> => {
@@ -157,7 +165,7 @@ export function SettingsScreen() {
       ? 'このブラウザは通知に対応していません'
       : permission === 'denied'
         ? '通知がブロックされています。ブラウザのサイト設定から通知を許可してください'
-        : '朝8時に期限当日・前日のタスクをお知らせします（送信は準備中です）';
+        : '朝8時台に、今日・明日が期限のタスクをお知らせします';
 
   return (
     <AppShell header={{ title: '設定' }} activeTab="settings" activeView="settings" showFab={false}>
@@ -180,8 +188,11 @@ export function SettingsScreen() {
                 id="settings-notifications"
                 label="通知を受け取る"
                 checked={settings.notificationsEnabled && permission === 'granted'}
-                disabled={permission === 'unsupported' || permission === 'denied'}
-                onChange={(next) => void toggleNotifications(next)}
+                disabled={permission === 'unsupported' || permission === 'denied' || isUpdatingNotifications}
+                onChange={(next) => {
+                  setIsUpdatingNotifications(true);
+                  void toggleNotifications(next).finally(() => setIsUpdatingNotifications(false));
+                }}
               />
             }
           />

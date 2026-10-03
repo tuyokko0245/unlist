@@ -1,4 +1,5 @@
 import { AuthGuard } from '@/components/auth/AuthGuard';
+import { DeviceTokenSync } from '@/components/layout/DeviceTokenSync';
 import { ConfettiProvider } from '@/contexts/ConfettiContext';
 import { ConfirmDialogProvider } from '@/contexts/ConfirmDialogContext';
 import { ListsProvider } from '@/contexts/ListsContext';
@@ -9,6 +10,7 @@ export default function AppLayout({ children }: LayoutProps<'/'>) {
   return (
     <AuthGuard>
       <SettingsProvider>
+        <DeviceTokenSync />
         <ListsProvider>
           <SnackbarProvider>
             <ConfirmDialogProvider>

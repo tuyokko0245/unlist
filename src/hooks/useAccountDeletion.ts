@@ -13,6 +13,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { needsReauthentication, reauthMethodOf, type ReauthMethod } from '@/lib/auth/recentLogin';
 import { auth, db } from '@/lib/firebase/config';
 import { deleteUserData } from '@/lib/firebase/deleteUserData';
+import { unregisterDevice } from '@/lib/firebase/messaging';
 import { THEME_STORAGE_KEY } from '@/lib/theme/applyBaseColor';
 
 export interface UseAccountDeletion {
@@ -54,6 +55,7 @@ export function useAccountDeletion(): UseAccountDeletion {
   const deleteAccount = useCallback(async () => {
     const target = currentUser();
     await deleteUserData(db, target.uid);
+    await unregisterDevice(null);
     await deleteUser(target);
     try {
       window.localStorage.removeItem(THEME_STORAGE_KEY);

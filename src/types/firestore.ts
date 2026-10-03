@@ -14,7 +14,7 @@ export interface ListDoc {
 export interface UserSettingsDoc {
   baseColor: string;
   notificationsEnabled: boolean;
-  fcmToken: string | null;
+  fcmTokens?: string[];
 }
 
 export interface TaskDoc {
@@ -24,7 +24,7 @@ export interface TaskDoc {
   priority: Priority;
   isStarred: boolean;
   dueDate: Timestamp | null;
-  reminder: { datetime: Timestamp; isEnabled: boolean } | null;
+  reminder: { datetime: Timestamp; isEnabled: boolean; sentAt?: Timestamp | null } | null;
   repeat: RepeatConfig | null;
   memo: string;
   completedAt: Timestamp | null;

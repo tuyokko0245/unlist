@@ -27,7 +27,11 @@ export function toTask(snapshot: QueryDocumentSnapshot<TaskDoc>): Task {
     isStarred: data.isStarred,
     dueDate: data.dueDate?.toDate() ?? null,
     reminder: data.reminder
-      ? { datetime: data.reminder.datetime.toDate(), isEnabled: data.reminder.isEnabled }
+      ? {
+          datetime: data.reminder.datetime.toDate(),
+          isEnabled: data.reminder.isEnabled,
+          sentAt: data.reminder.sentAt?.toDate() ?? null,
+        }
       : null,
     repeat: data.repeat,
     memo: data.memo ?? '',

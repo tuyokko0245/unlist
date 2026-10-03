@@ -30,7 +30,11 @@ function toTaskFields(values: TaskFormValues, drafts: SubtaskDraft[]) {
     isStarred: values.isStarred,
     dueDate: values.dueDate ? Timestamp.fromDate(values.dueDate) : null,
     reminder: values.reminder
-      ? { datetime: Timestamp.fromDate(values.reminder.datetime), isEnabled: values.reminder.isEnabled }
+      ? {
+          datetime: Timestamp.fromDate(values.reminder.datetime),
+          isEnabled: values.reminder.isEnabled,
+          sentAt: values.reminder.sentAt ? Timestamp.fromDate(values.reminder.sentAt) : null,
+        }
       : null,
     repeat: values.repeat,
     memo: values.memo,
