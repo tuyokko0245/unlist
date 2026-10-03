@@ -4,6 +4,7 @@ import { CheckCheck } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import { InstallBanner } from '@/components/feedback/InstallBanner';
 import { LiveAnnouncer } from '@/components/feedback/LiveAnnouncer';
 import { AppShell } from '@/components/layout/AppShell';
 import { CompletedSection } from '@/components/task/CompletedSection';
@@ -152,6 +153,7 @@ export function TodayView() {
     >
       <LiveAnnouncer message={announcement.text} seq={announcement.seq} />
       <main className="mx-auto flex w-full max-w-content-max flex-col gap-6 px-4 pt-1 md:px-8">
+        <InstallBanner />
         <TaskListView
           isLoading={isLoading}
           error={error}

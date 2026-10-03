@@ -7,7 +7,12 @@ import { DEFAULT_BASE_COLOR } from '@/constants/palette';
 import { useAuth } from '@/hooks/useAuth';
 import { db } from '@/lib/firebase/config';
 import { userSettingsDoc } from '@/lib/firebase/refs';
-import { applyBaseColor, readCachedTheme, watchColorScheme } from '@/lib/theme/applyBaseColor';
+import {
+  applyBaseColor,
+  keepThemeColorMeta,
+  readCachedTheme,
+  watchColorScheme,
+} from '@/lib/theme/applyBaseColor';
 import type { UserSettings } from '@/types/domain';
 
 export interface SettingsContextValue {
@@ -41,7 +46,12 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const theme = applyBaseColor(settings.baseColor);
-    return watchColorScheme(theme);
+    const stopWatching = watchColorScheme(theme);
+    const stopKeeping = keepThemeColorMeta(theme);
+    return () => {
+      stopWatching();
+      stopKeeping();
+    };
   }, [settings.baseColor]);
 
   const value = useMemo(() => ({ settings, isLoading }), [settings, isLoading]);

@@ -23,6 +23,20 @@ export function applyRamp(tokens: ThemeTokens, root: HTMLElement): void {
   }
 }
 
+export function applyThemeColorMeta(theme: CachedTheme): void {
+  for (const meta of document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]')) {
+    const tokens = meta.media.includes('dark') ? theme.dark : theme.light;
+    if (meta.content !== tokens['grad-top']) meta.content = tokens['grad-top'];
+  }
+}
+
+export function keepThemeColorMeta(theme: CachedTheme): () => void {
+  if (typeof MutationObserver === 'undefined') return () => {};
+  const observer = new MutationObserver(() => applyThemeColorMeta(theme));
+  observer.observe(document.head, { childList: true, subtree: true, attributes: true, attributeFilter: ['content'] });
+  return () => observer.disconnect();
+}
+
 export function buildTheme(baseColor: string): CachedTheme {
   const hex = normalizeHex(baseColor);
   return {
@@ -37,6 +51,7 @@ export function applyBaseColor(baseColor: string): CachedTheme {
   if (typeof document === 'undefined') return theme;
 
   applyRamp(prefersDark() ? theme.dark : theme.light, document.documentElement);
+  applyThemeColorMeta(theme);
 
   try {
     window.localStorage.setItem(THEME_STORAGE_KEY, JSON.stringify(theme));
@@ -69,4 +84,4 @@ export function watchColorScheme(theme: CachedTheme): () => void {
   return () => query.removeEventListener('change', handler);
 }
 
-export const THEME_INIT_SCRIPT = `(function(){try{var t=JSON.parse(localStorage.getItem('${THEME_STORAGE_KEY}'));if(!t)return;var d=window.matchMedia('(prefers-color-scheme: dark)').matches;var r=d?t.dark:t.light;for(var k in r){document.documentElement.style.setProperty('--app-base-'+k,r[k]);}}catch(e){}})();`;
+export const THEME_INIT_SCRIPT = `(function(){try{var t=JSON.parse(localStorage.getItem('${THEME_STORAGE_KEY}'));if(!t)return;var d=window.matchMedia('(prefers-color-scheme: dark)').matches;var r=d?t.dark:t.light;for(var k in r){document.documentElement.style.setProperty('--app-base-'+k,r[k]);}var m=document.querySelectorAll('meta[name="theme-color"]');for(var i=0;i<m.length;i++){var s=m[i].media.indexOf('dark')>=0?t.dark:t.light;if(s['grad-top'])m[i].content=s['grad-top'];}}catch(e){}})();`;
